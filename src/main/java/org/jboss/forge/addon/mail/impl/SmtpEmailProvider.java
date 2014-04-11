@@ -55,8 +55,8 @@ public class SmtpEmailProvider implements EmailProvider
          if (!Strings.isNullOrEmpty(email.getFrom()))
             message.setFrom(new InternetAddress(email.getFrom()));
 
-         message.setSubject(email.getSubject());
-         message.setText(email.getBody());
+         message.setSubject(email.getSubject() == null ? "" : email.getSubject());
+         message.setText(email.getBody() == null ? "" : email.getBody());
 
          Transport.send(message);
       }
