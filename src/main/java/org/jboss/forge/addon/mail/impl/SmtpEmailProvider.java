@@ -68,27 +68,32 @@ public class SmtpEmailProvider implements EmailProvider
 
    private Session getEmailSession()
    {
-      Configuration configuration = configFactory.getUserConfiguration();
-
-      if (!configuration.containsKey(CONFIG_SUBSET_KEY))
-      {
-         throw new IllegalStateException("SMTP must be configured before Email can be sent.");
-      }
-
-      final Configuration mailConfig = configuration.subset(CONFIG_SUBSET_KEY);
+      final Configuration config = configFactory.getUserConfiguration().subset(CONFIG_SUBSET_KEY);
 
       Properties props = new Properties();
-      props.put("mail.smtp.auth", mailConfig.getProperty(CONFIG_MAIL_SMTP_AUTH_ENABLED));
-      props.put("mail.smtp.host", mailConfig.getProperty(CONFIG_MAIL_SMTP_HOST));
-      props.put("mail.smtp.port", mailConfig.getProperty(CONFIG_MAIL_SMTP_PORT));
-      props.put("mail.smtp.starttls.enable", mailConfig.getProperty(CONFIG_MAIL_SMTP_STARTTLS));
+      if (config.containsKey(CONFIG_MAIL_SMTP_AUTH_ENABLED))
+      {
+         props.put("mail.smtp.auth", config.getProperty(CONFIG_MAIL_SMTP_AUTH_ENABLED));
+      }
+      if (config.containsKey(CONFIG_MAIL_SMTP_HOST))
+      {
+         props.put("mail.smtp.host", config.getProperty(CONFIG_MAIL_SMTP_HOST));
+      }
+      if (config.containsKey(CONFIG_MAIL_SMTP_PORT))
+      {
+         props.put("mail.smtp.port", config.getProperty(CONFIG_MAIL_SMTP_PORT));
+      }
+      if (config.containsKey(CONFIG_MAIL_SMTP_STARTTLS))
+      {
+         props.put("mail.smtp.starttls.enable", config.getProperty(CONFIG_MAIL_SMTP_STARTTLS));
+      }
 
       javax.mail.Authenticator authenticator = new javax.mail.Authenticator()
       {
          protected PasswordAuthentication getPasswordAuthentication()
          {
-            return new PasswordAuthentication(mailConfig.getString(CONFIG_MAIL_SMTP_USER),
-                     mailConfig.getString(CONFIG_MAIL_SMTP_PASSWORD));
+            return new PasswordAuthentication(config.getString(CONFIG_MAIL_SMTP_USER),
+                     config.getString(CONFIG_MAIL_SMTP_PASSWORD));
          }
       };
 
