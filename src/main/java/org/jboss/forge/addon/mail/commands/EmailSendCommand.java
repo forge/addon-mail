@@ -85,7 +85,7 @@ public class EmailSendCommand extends AbstractUICommand
          }
          if (cc.getValue() != null)
          {
-            email.to(Arrays.asList(bcc.getValue().split("(,|\\s|;)+")));
+            email.to(Arrays.asList(cc.getValue().split("(,|\\s|;)+")));
          }
          if (bcc.getValue() != null)
          {
