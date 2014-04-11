@@ -24,6 +24,7 @@ public class EmailService
          {
             provider.send(email);
             sent = true;
+            break;
          }
          catch (Exception e)
          {
