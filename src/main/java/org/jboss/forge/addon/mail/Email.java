@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jboss.forge.furnace.util.Assert;
+import org.jboss.forge.furnace.util.Strings;
 
 public class Email
 {
@@ -99,7 +100,8 @@ public class Email
       {
          for (String address : to)
          {
-            this.to.add(address);
+            if (!Strings.isNullOrEmpty(address))
+               this.to.add(address);
          }
       }
       return this;
@@ -111,7 +113,8 @@ public class Email
       {
          for (String address : cc)
          {
-            this.cc.add(address);
+            if (!Strings.isNullOrEmpty(address))
+               this.cc.add(address);
          }
       }
       return this;
@@ -123,7 +126,8 @@ public class Email
       {
          for (String address : bcc)
          {
-            this.bcc.add(address);
+            if (!Strings.isNullOrEmpty(address))
+               this.bcc.add(address);
          }
       }
       return this;

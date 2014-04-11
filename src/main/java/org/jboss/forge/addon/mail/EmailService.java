@@ -1,89 +1,44 @@
 package org.jboss.forge.addon.mail;
 
-import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.inject.Inject;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 
-import org.jboss.forge.addon.configuration.Configuration;
-import org.jboss.forge.addon.configuration.ConfigurationFactory;
-import org.jboss.forge.furnace.util.Strings;
+import org.jboss.forge.addon.mail.spi.EmailProvider;
+import org.jboss.forge.furnace.services.Imported;
 
 public class EmailService
 {
-   public static final String CONFIG_SUBSET_KEY = "org.jboss.forge.addon.mail";
-   public static final String CONFIG_MAIL_SMTP_PASSWORD = "mail.smtp.password";
-   public static final String CONFIG_MAIL_SMTP_USER = "mail.smtp.user";
-   public static final String CONFIG_MAIL_SMTP_PORT = "mail.smtp.port";
-   public static final String CONFIG_MAIL_SMTP_HOST = "mail.smtp.host";
-   public static final String CONFIG_MAIL_SMTP_STARTTLS_ENABLE = "mail.smtp.starttls.enable";
-   public static final String CONFIG_MAIL_SMTP_AUTH_ENABLED = "mail.smtp.auth";
+   private static final Logger log = Logger.getLogger(EmailService.class.getName());
 
    @Inject
-   private ConfigurationFactory configFactory;
+   private Imported<EmailProvider> providers;
 
    public void send(Email email)
    {
-      Session session = getEmailSession();
-
-      try
+      boolean sent = false;
+      for (EmailProvider provider : providers)
       {
-         Message message = new MimeMessage(session);
-
-         for (String to : email.getTo())
+         try
          {
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+            provider.send(email);
+            sent = true;
          }
-         for (String cc : email.getCc())
+         catch (Exception e)
          {
-            message.addRecipient(Message.RecipientType.CC, new InternetAddress(cc));
+            log.log(Level.SEVERE, "Could not send email via provider [" + provider + "]", e);
          }
-         for (String bcc : email.getBcc())
+         finally
          {
-            message.addRecipient(Message.RecipientType.BCC, new InternetAddress(bcc));
+            providers.release(provider);
          }
-
-         if (!Strings.isNullOrEmpty(email.getFrom()))
-            message.setFrom(new InternetAddress(email.getFrom()));
-
-         message.setSubject(email.getSubject());
-         message.setText(email.getBody());
-
-         Transport.send(message);
       }
-      catch (MessagingException e)
+
+      if (!sent)
       {
-         throw new RuntimeException(e);
+         throw new IllegalStateException("Could not send email. See log for details.");
       }
    }
 
-   private Session getEmailSession()
-   {
-      Configuration configuration = configFactory.getUserConfiguration();
-      final Configuration mailConfig = configuration.subset(CONFIG_SUBSET_KEY);
-
-      Properties props = new Properties();
-      props.put(CONFIG_MAIL_SMTP_AUTH_ENABLED, mailConfig.getProperty(CONFIG_MAIL_SMTP_AUTH_ENABLED));
-      props.put(CONFIG_MAIL_SMTP_STARTTLS_ENABLE, mailConfig.getProperty(CONFIG_MAIL_SMTP_STARTTLS_ENABLE));
-      props.put(CONFIG_MAIL_SMTP_HOST, mailConfig.getProperty(CONFIG_MAIL_SMTP_HOST));
-      props.put(CONFIG_MAIL_SMTP_PORT, mailConfig.getProperty(CONFIG_MAIL_SMTP_PORT));
-
-      javax.mail.Authenticator authenticator = new javax.mail.Authenticator()
-      {
-         protected PasswordAuthentication getPasswordAuthentication()
-         {
-            return new PasswordAuthentication(mailConfig.getString(CONFIG_MAIL_SMTP_USER),
-                     mailConfig.getString(CONFIG_MAIL_SMTP_PASSWORD));
-         }
-      };
-
-      Session session = Session.getInstance(props, authenticator);
-      return session;
-   }
 }

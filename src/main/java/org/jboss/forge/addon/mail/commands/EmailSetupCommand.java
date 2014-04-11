@@ -6,7 +6,7 @@ import javax.inject.Inject;
 
 import org.jboss.forge.addon.configuration.Configuration;
 import org.jboss.forge.addon.configuration.ConfigurationFactory;
-import org.jboss.forge.addon.mail.EmailService;
+import org.jboss.forge.addon.mail.impl.SmtpEmailProvider;
 import org.jboss.forge.addon.ui.command.AbstractUICommand;
 import org.jboss.forge.addon.ui.context.UIBuilder;
 import org.jboss.forge.addon.ui.context.UIContext;
@@ -54,7 +54,8 @@ public class EmailSetupCommand extends AbstractUICommand
    {
       return Metadata.forCommand(EmailSetupCommand.class)
                .name(context.getProvider().isGUI() ? "Configure SMTP" : "Email SMTP Setup")
-               .category(Categories.create("Communication", "Email"));
+               .category(Categories.create("Communication", "Email"))
+               .description("Configure SMTP settings for Email");
    }
 
    @Override
@@ -72,13 +73,13 @@ public class EmailSetupCommand extends AbstractUICommand
       smtpPassword.setEnabled(authEnabled);
 
       Configuration configuration = configFactory.getUserConfiguration();
-      Configuration mailConfig = configuration.subset(EmailService.CONFIG_SUBSET_KEY);
-      smtpAuth.setDefaultValue(mailConfig.getBoolean(EmailService.CONFIG_MAIL_SMTP_AUTH_ENABLED, false));
-      smtpUsername.setDefaultValue(mailConfig.getString(EmailService.CONFIG_MAIL_SMTP_USER, ""));
-      smtpPassword.setDefaultValue(mailConfig.getString(EmailService.CONFIG_MAIL_SMTP_PASSWORD, ""));
-      smtpHost.setDefaultValue(mailConfig.getString(EmailService.CONFIG_MAIL_SMTP_HOST, "localhost"));
-      smtpPort.setDefaultValue(mailConfig.getInteger(EmailService.CONFIG_MAIL_SMTP_PORT, 25));
-      smtpUseTlsSsl.setDefaultValue(mailConfig.getBoolean(EmailService.CONFIG_MAIL_SMTP_STARTTLS_ENABLE, false));
+      Configuration mailConfig = configuration.subset(SmtpEmailProvider.CONFIG_SUBSET_KEY);
+      smtpAuth.setDefaultValue(mailConfig.getBoolean(SmtpEmailProvider.CONFIG_MAIL_SMTP_AUTH_ENABLED, false));
+      smtpUsername.setDefaultValue(mailConfig.getString(SmtpEmailProvider.CONFIG_MAIL_SMTP_USER, ""));
+      smtpPassword.setDefaultValue(mailConfig.getString(SmtpEmailProvider.CONFIG_MAIL_SMTP_PASSWORD, ""));
+      smtpHost.setDefaultValue(mailConfig.getString(SmtpEmailProvider.CONFIG_MAIL_SMTP_HOST, "localhost"));
+      smtpPort.setDefaultValue(mailConfig.getInteger(SmtpEmailProvider.CONFIG_MAIL_SMTP_PORT, 25));
+      smtpUseTlsSsl.setDefaultValue(mailConfig.getBoolean(SmtpEmailProvider.CONFIG_MAIL_SMTP_STARTTLS, false));
 
       builder.add(smtpUsername).add(smtpPassword).add(smtpAuth).add(smtpHost).add(smtpPort).add(smtpUseTlsSsl);
    }
@@ -87,16 +88,16 @@ public class EmailSetupCommand extends AbstractUICommand
    public Result execute(UIExecutionContext context)
    {
       Configuration configuration = configFactory.getUserConfiguration();
-      Configuration mailConfig = configuration.subset(EmailService.CONFIG_SUBSET_KEY);
+      Configuration mailConfig = configuration.subset(SmtpEmailProvider.CONFIG_SUBSET_KEY);
 
-      mailConfig.setProperty(EmailService.CONFIG_MAIL_SMTP_AUTH_ENABLED, smtpAuth.getValue());
-      mailConfig.setProperty(EmailService.CONFIG_MAIL_SMTP_USER,
+      mailConfig.setProperty(SmtpEmailProvider.CONFIG_MAIL_SMTP_AUTH_ENABLED, smtpAuth.getValue());
+      mailConfig.setProperty(SmtpEmailProvider.CONFIG_MAIL_SMTP_USER,
                smtpUsername.isEnabled() ? smtpUsername.getValue() : "");
-      mailConfig.setProperty(EmailService.CONFIG_MAIL_SMTP_PASSWORD,
+      mailConfig.setProperty(SmtpEmailProvider.CONFIG_MAIL_SMTP_PASSWORD,
                smtpUsername.isEnabled() ? smtpPassword.getValue() : "");
-      mailConfig.setProperty(EmailService.CONFIG_MAIL_SMTP_HOST, smtpHost.getValue());
-      mailConfig.setProperty(EmailService.CONFIG_MAIL_SMTP_PORT, smtpPort.getValue());
-      mailConfig.setProperty(EmailService.CONFIG_MAIL_SMTP_STARTTLS_ENABLE, smtpUseTlsSsl.getValue());
+      mailConfig.setProperty(SmtpEmailProvider.CONFIG_MAIL_SMTP_HOST, smtpHost.getValue());
+      mailConfig.setProperty(SmtpEmailProvider.CONFIG_MAIL_SMTP_PORT, smtpPort.getValue());
+      mailConfig.setProperty(SmtpEmailProvider.CONFIG_MAIL_SMTP_STARTTLS, smtpUseTlsSsl.getValue());
 
       return Results.success("SMTP configuration complete.");
    }

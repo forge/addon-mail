@@ -1,5 +1,7 @@
 package org.jboss.forge.addon.mail.commands;
 
+import java.util.Arrays;
+
 import javax.inject.Inject;
 
 import org.jboss.forge.addon.mail.Email;
@@ -35,7 +37,7 @@ public class EmailSendCommand extends AbstractUICommand
 
    @Inject
    @WithAttributes(label = "Message Body", type = InputType.TEXTAREA)
-   private UIInput<String> message;
+   private UIInput<String> body;
 
    @Inject
    private EmailService mailer;
@@ -43,14 +45,16 @@ public class EmailSendCommand extends AbstractUICommand
    @Override
    public UICommandMetadata getMetadata(UIContext context)
    {
-      return Metadata.forCommand(EmailSendCommand.class).name(context.getProvider().isGUI() ? "Send an Email Message" : "Email Send")
-               .category(Categories.create("Communication", "Email"));
+      return Metadata.forCommand(EmailSendCommand.class)
+               .name(context.getProvider().isGUI() ? "Send an Email Message" : "Email Send")
+               .category(Categories.create("Communication", "Email"))
+               .description("Compose an email to one or more recipients.");
    }
 
    @Override
    public void initializeUI(UIBuilder builder) throws Exception
    {
-      builder.add(to).add(cc).add(bcc).add(subject).add(message);
+      builder.add(to).add(cc).add(bcc).add(subject).add(body);
    }
 
    @Override
@@ -74,12 +78,24 @@ public class EmailSendCommand extends AbstractUICommand
    {
       try
       {
-         mailer.send(Email.message()
-                  .to(to.getValue())
-                  .cc(cc.getValue())
-                  .bcc(bcc.getValue())
-                  .subject(subject.getValue())
-                  .body(message.getValue()));
+         Email email = Email.message();
+         if (to.getValue() != null)
+         {
+            email.to(Arrays.asList(to.getValue().split("(,|\\s|;)+")));
+         }
+         if (cc.getValue() != null)
+         {
+            email.to(Arrays.asList(bcc.getValue().split("(,|\\s|;)+")));
+         }
+         if (bcc.getValue() != null)
+         {
+            email.to(Arrays.asList(bcc.getValue().split("(,|\\s|;)+")));
+         }
+
+         email.subject(subject.getValue());
+         email.body(body.getValue());
+
+         mailer.send(email);
          return Results.success("Email sent.");
       }
       catch (Exception e)

@@ -34,7 +34,7 @@ public class EmailServiceTest
    @Inject
    private EmailService mailer;
 
-   @Test
+   @Test(expected = IllegalStateException.class)
    public void testEmailService() throws Exception
    {
       mailer.send(Email.message()
