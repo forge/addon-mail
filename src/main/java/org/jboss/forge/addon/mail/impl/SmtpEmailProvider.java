@@ -78,10 +78,10 @@ public class SmtpEmailProvider implements EmailProvider
       final Configuration mailConfig = configuration.subset(CONFIG_SUBSET_KEY);
 
       Properties props = new Properties();
-      props.put(CONFIG_MAIL_SMTP_AUTH_ENABLED, mailConfig.getProperty(CONFIG_MAIL_SMTP_AUTH_ENABLED));
-      props.put(CONFIG_MAIL_SMTP_HOST, mailConfig.getProperty(CONFIG_MAIL_SMTP_HOST));
-      props.put(CONFIG_MAIL_SMTP_PORT, mailConfig.getProperty(CONFIG_MAIL_SMTP_PORT));
-      props.put(CONFIG_MAIL_SMTP_STARTTLS, mailConfig.getProperty(CONFIG_MAIL_SMTP_STARTTLS));
+      props.put("mail.smtp.auth", mailConfig.getProperty(CONFIG_MAIL_SMTP_AUTH_ENABLED));
+      props.put("mail.smtp.host", mailConfig.getProperty(CONFIG_MAIL_SMTP_HOST));
+      props.put("mail.smtp.port", mailConfig.getProperty(CONFIG_MAIL_SMTP_PORT));
+      props.put("mail.smtp.starttls.enable", mailConfig.getProperty(CONFIG_MAIL_SMTP_STARTTLS));
 
       javax.mail.Authenticator authenticator = new javax.mail.Authenticator()
       {
